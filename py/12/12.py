@@ -5,47 +5,54 @@ def get_lines(infile):
             yield line
 
 
-def check(row, data):
-    row = ''.join(row)
-    parts = list(map(list, filter(None, row.split('.'))))
-    # print(parts)
+def go(row, data, ofs, ofs_part, cur_part):
+    if ofs == len(row):
+        if ofs_part == len(data) and cur_part == 0:
+            return 1
+        if ofs_part == len(data) - 1 and data[ofs_part] == cur_part:
+            return 1
+        return 0
 
-    if len(parts) != len(data):
-        return False
-    for part, val in zip(parts, data):
-        if len(part) != val:
-            return False
-    print(parts)
-    return True
+    def go_dot():
+        if cur_part == 0:
+            return go(row, data, ofs + 1, ofs_part, 0)
+        elif ofs_part < len(data) and data[ofs_part] == cur_part:
+            # start new part if all prefix parts were valid
+            return go(row, data, ofs + 1, ofs_part + 1, 0)
+        else:
+            return 0  # invalid combination
+
+    def go_hash():
+        return go(row, data, ofs + 1, ofs_part, cur_part + 1)
+
+    ans = 0
+    if row[ofs] == '.':
+        ans += go_dot()
+    elif row[ofs] == '#':
+        ans += go_hash()
+    else:  # row[ofs] == '?'
+        ans += go_dot()
+        ans += go_hash()
+
+    return ans
 
 
-def go(row, data, ofs):
-    for i in range(ofs, len(row)):
-        if row[i] == '?':
-            ans = 0
-            row[i] = '.'
-            ans += go(row, data, i + 1)
-            row[i] = '#'
-            ans += go(row, data, i + 1)
-            row[i] = '?'
-            return ans
-    # no ? left after ofs
-    return 1 if check(row, data) else 0
-
-
-def get_variants_count(line):
+def get_variants_count(line, flag2=False):
     row, data = line.split(' ')
+    if flag2:
+        row = '?'.join([row] * 5)
+        data = ','.join([data] * 5)
     row = list(row)
     data = list(map(int, data.split(',')))
     print(row, data)
 
-    return go(row, data, 0)
+    return go(row, data, 0, 0, 0)
 
 
-def solve(infile):
+def solve(infile, flag2=False):
     ans = 0
     for line in get_lines(infile):
-        num = get_variants_count(line)
+        num = get_variants_count(line, flag2)
         ans += num
     return ans
 
