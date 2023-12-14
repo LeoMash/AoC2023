@@ -76,8 +76,9 @@ def solve2(infile, num_spins):
             # print_data(data)
 
         imm_data = tuple(tuple(line) for line in data)
-        if imm_data in data_to_spin:
-            idx_cycle_start = data_to_spin[imm_data]
+        h = hash(imm_data)
+        if h in data_to_spin:
+            idx_cycle_start = data_to_spin[h]
             cycle_len = spin - idx_cycle_start
             print(f'CYCLE FOUND: start {idx_cycle_start}, len {cycle_len}')
             spins_to_skip = (num_spins - spin) // cycle_len
@@ -87,7 +88,7 @@ def solve2(infile, num_spins):
             data_idx = idx_cycle_start + spins_left
             break
 
-        data_to_spin[imm_data] = spin
+        data_to_spin[h] = spin
         data_cache.append(imm_data)
         spin += 1
 
