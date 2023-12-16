@@ -1,5 +1,5 @@
 import time
-import timeit
+from collections import deque
 
 
 def get_input(infile):
@@ -9,89 +9,69 @@ def get_input(infile):
 
 
 RIGHT, DOWN, LEFT, UP = range(4)
+MASK = [1, 2, 4, 8]
 
-
-def get_dir(d, c):
-    if c == '.':
-        return [d]
-    if c == '\\':
-        if d == RIGHT:
-            return [DOWN]
-        if d == DOWN:
-            return [RIGHT]
-        if d == LEFT:
-            return [UP]
-        if d == UP:
-            return [LEFT]
-    if c == '/':
-        if d == RIGHT:
-            return [UP]
-        if d == DOWN:
-            return [LEFT]
-        if d == LEFT:
-            return [DOWN]
-        if d == UP:
-            return [RIGHT]
-    if c == '|':
-        if d == RIGHT:
-            return [UP, DOWN]
-        if d == DOWN:
-            return [DOWN]
-        if d == LEFT:
-            return [UP, DOWN]
-        if d == UP:
-            return [UP]
-    if c == '-':
-        if d == RIGHT:
-            return [RIGHT]
-        if d == DOWN:
-            return [LEFT, RIGHT]
-        if d == LEFT:
-            return [LEFT]
-        if d == UP:
-            return [LEFT, RIGHT]
-
+DSP = {
+    '.': [
+        [RIGHT],
+        [DOWN],
+        [LEFT],
+        [UP]
+    ],
+    '\\': [
+        [DOWN],
+        [RIGHT],
+        [UP],
+        [LEFT],
+    ],
+    '/': [
+        [UP],
+        [LEFT],
+        [DOWN],
+        [RIGHT],
+    ],
+    '|': [
+        [UP, DOWN],
+        [DOWN],
+        [UP, DOWN],
+        [UP],
+    ],
+    '-': [
+        [RIGHT],
+        [LEFT, RIGHT],
+        [LEFT],
+        [LEFT, RIGHT],
+    ],
+}
 
 dx = [0, 1, 0, -1]
 dy = [1, 0, -1, 0]
-
-mask = [
-    1,
-    2,
-    4,
-    8
-]
 
 
 def bfs(mirr, sx, sy, sdir, e):
     n = len(mirr)
     m = len(mirr[0])
 
-    q = [(sx, sy, sdir)]
+    q = deque([(sx, sy, sdir)])
 
     while q:
-        x, y, dir = q.pop(0)
+        x, y, d = q.popleft()
 
         edirs = e[x][y]
-        if (edirs & mask[dir]) == mask[dir]:
+        if (edirs & MASK[d]) == MASK[d]:
             # already were here from this direction
             continue
 
         # update info about current cell
-        edirs = edirs | mask[dir]
-        e[x][y] = edirs
+        e[x][y] = edirs | MASK[d]
 
         # split ray to new directions
-        new_dirs = get_dir(dir, mirr[x][y])
-        for new_d in new_dirs:
-            nx, ny = x + dx[new_d], y + dy[new_d]
-
-            if nx < 0 or nx >= n:
-                continue
-            if ny < 0 or ny >= m:
+        for nd in DSP[mirr[x][y]][d]:
+            nx, ny = x + dx[nd], y + dy[nd]
+            if nx < 0 or nx >= n or ny < 0 or ny >= m:
                 continue
 
-            q.append((nx, ny, new_d))
+            q.append((nx, ny, nd))
 
 
 def get_e_value(e, n, m):
@@ -140,7 +120,9 @@ def main():
     print(solve1('16_test.in'))
     print(solve1('16.in'))
     print(solve2('16_test.in'))
+    tm = time.time()
     print(solve2('16.in'))
+    print(time.time() - tm)
 
 
 if __name__ == '__main__':
