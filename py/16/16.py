@@ -4,55 +4,47 @@ def get_input(infile):
     return content.split('\n')
 
 
-def show(data):
-    for line in data:
-        print(line)
+RIGHT, DOWN, LEFT, UP = range(4)
 
 
-RIGHT = 0
-DOWN = 1
-LEFT = 2
-UP = 3
-
-
-def get_dir(dir, c):
+def get_dir(d, c):
     if c == '.':
-        return [dir]
+        return [d]
     if c == '\\':
-        if dir == RIGHT:
+        if d == RIGHT:
             return [DOWN]
-        if dir == DOWN:
+        if d == DOWN:
             return [RIGHT]
-        if dir == LEFT:
+        if d == LEFT:
             return [UP]
-        if dir == UP:
+        if d == UP:
             return [LEFT]
     if c == '/':
-        if dir == RIGHT:
+        if d == RIGHT:
             return [UP]
-        if dir == DOWN:
+        if d == DOWN:
             return [LEFT]
-        if dir == LEFT:
+        if d == LEFT:
             return [DOWN]
-        if dir == UP:
+        if d == UP:
             return [RIGHT]
     if c == '|':
-        if dir == RIGHT:
+        if d == RIGHT:
             return [UP, DOWN]
-        if dir == DOWN:
+        if d == DOWN:
             return [DOWN]
-        if dir == LEFT:
+        if d == LEFT:
             return [UP, DOWN]
-        if dir == UP:
+        if d == UP:
             return [UP]
     if c == '-':
-        if dir == RIGHT:
+        if d == RIGHT:
             return [RIGHT]
-        if dir == DOWN:
+        if d == DOWN:
             return [LEFT, RIGHT]
-        if dir == LEFT:
+        if d == LEFT:
             return [LEFT]
-        if dir == UP:
+        if d == UP:
             return [LEFT, RIGHT]
 
 
@@ -81,8 +73,7 @@ def bfs(mirr, sx, sy, sdir, e):
         # split ray to new directions
         new_dirs = get_dir(dir, mirr[x][y])
         for new_d in new_dirs:
-            nx = x + dx[new_d]
-            ny = y + dy[new_d]
+            nx, ny = x + dx[new_d], y + dy[new_d]
 
             if nx < 0 or nx >= n:
                 continue
@@ -96,73 +87,49 @@ def get_e_value(e, n, m):
     ans = 0
     for i in range(n):
         for j in range(m):
-            v, _ = e[i][j]
+            v = e[i][j][0]
             if v == '#':
                 ans += 1
     return ans
 
 
-def solve1(infile):
-    mirr = get_input(infile)
-    show(mirr)
+def solve(mirr, x, y, d):
     n = len(mirr)
     m = len(mirr[0])
-    e = [[('.', set()) for j in range(m)] for i in range(n)]
+    e = [[('.', set()) for _ in range(m)] for _ in range(n)]
+    bfs(mirr, x, y, d, e)
 
-    bfs(mirr, 0, 0, 0, e)
+    # print(e)
+    val = get_e_value(e, n, m)
+    # print(f'{x} {y} {d} = {val}')
+    return val
 
-    print(e)
 
-    ans = get_e_value(e, n, m)
+def solve1(infile):
+    mirr = get_input(infile)
+    ans = solve(mirr, 0, 0, 0)
     return ans
 
 
 def solve2(infile):
     mirr = get_input(infile)
-    show(mirr)
     n = len(mirr)
     m = len(mirr[0])
 
     ans = 0
     for i in range(n):
-        e = [[('.', set()) for j in range(m)] for i in range(n)]
-        bfs(mirr, i, 0, 0, e)
-
-        # print(e)
-        val = get_e_value(e, n, m)
-        print(f'{i} {0} = val')
-        ans = max(ans, val)
+        ans = max(ans, solve(mirr, i, 0, 0))
+        ans = max(ans, solve(mirr, i, m - 1, 2))
     for j in range(m):
-        e = [[('.', set()) for j in range(m)] for i in range(n)]
-        bfs(mirr, 0, j, 1, e)
-
-        # print(e)
-        val = get_e_value(e, n, m)
-        print(f'{0} {j} = val')
-        ans = max(ans, val)
-    for i in range(n):
-        e = [[('.', set()) for j in range(m)] for i in range(n)]
-        bfs(mirr, i, m - 1, 2, e)
-
-        # print(e)
-        val = get_e_value(e, n, m)
-        print(f'{i} {m - 1} = val')
-        ans = max(ans, val)
-    for j in range(m):
-        e = [[('.', set()) for j in range(m)] for i in range(n)]
-        bfs(mirr, n - 1, j, 3, e)
-
-        # print(e)
-        val = get_e_value(e, n, m)
-        print(f'{n - 1} {j} = val')
-        ans = max(ans, val)
+        ans = max(ans, solve(mirr, 0, j, 1))
+        ans = max(ans, solve(mirr, n - 1, j, 3))
     return ans
 
 
 def main():
-    # print(solve1('16_test.in'))
-    # print(solve1('16.in'))
-    # print(solve2('16_test.in'))
+    print(solve1('16_test.in'))
+    print(solve1('16.in'))
+    print(solve2('16_test.in'))
     print(solve2('16.in'))
 
 
