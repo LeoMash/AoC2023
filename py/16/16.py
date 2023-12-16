@@ -1,3 +1,7 @@
+import time
+import timeit
+
+
 def get_input(infile):
     with open(infile) as f:
         content = f.read()
@@ -51,6 +55,13 @@ def get_dir(d, c):
 dx = [0, 1, 0, -1]
 dy = [1, 0, -1, 0]
 
+mask = [
+    1,
+    2,
+    4,
+    8
+]
+
 
 def bfs(mirr, sx, sy, sdir, e):
     n = len(mirr)
@@ -61,14 +72,14 @@ def bfs(mirr, sx, sy, sdir, e):
     while q:
         x, y, dir = q.pop(0)
 
-        ev, edirs = e[x][y]
-        if ev == '#' and dir in edirs:
+        edirs = e[x][y]
+        if (edirs & mask[dir]) == mask[dir]:
             # already were here from this direction
             continue
 
         # update info about current cell
-        edirs.add(dir)
-        e[x][y] = ('#', edirs)
+        edirs = edirs | mask[dir]
+        e[x][y] = edirs
 
         # split ray to new directions
         new_dirs = get_dir(dir, mirr[x][y])
@@ -87,8 +98,7 @@ def get_e_value(e, n, m):
     ans = 0
     for i in range(n):
         for j in range(m):
-            v = e[i][j][0]
-            if v == '#':
+            if e[i][j]:
                 ans += 1
     return ans
 
@@ -96,7 +106,7 @@ def get_e_value(e, n, m):
 def solve(mirr, x, y, d):
     n = len(mirr)
     m = len(mirr[0])
-    e = [[('.', set()) for _ in range(m)] for _ in range(n)]
+    e = [[0 for _ in range(m)] for _ in range(n)]
     bfs(mirr, x, y, d, e)
 
     # print(e)
