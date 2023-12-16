@@ -8,41 +8,35 @@ def get_input(infile):
     return content.split('\n')
 
 
+CNV = {
+    '.': 0,
+    '\\': 1,
+    '/': 2,
+    '|': 3,
+    '-': 4,
+}
+
+
+def conv(mirr):
+    n = len(mirr)
+    m = len(mirr[0])
+    res = [[0 for _ in range(m)] for _ in range(n)]
+    for i in range(n):
+        for j in range(m):
+            res[i][j] = CNV[mirr[i][j]]
+    return res
+
+
 RIGHT, DOWN, LEFT, UP = range(4)
 MASK = [1, 2, 4, 8]
 
-DSP = {
-    '.': [
-        [RIGHT],
-        [DOWN],
-        [LEFT],
-        [UP]
-    ],
-    '\\': [
-        [DOWN],
-        [RIGHT],
-        [UP],
-        [LEFT],
-    ],
-    '/': [
-        [UP],
-        [LEFT],
-        [DOWN],
-        [RIGHT],
-    ],
-    '|': [
-        [UP, DOWN],
-        [DOWN],
-        [UP, DOWN],
-        [UP],
-    ],
-    '-': [
-        [RIGHT],
-        [LEFT, RIGHT],
-        [LEFT],
-        [LEFT, RIGHT],
-    ],
-}
+DSP = [
+    [[RIGHT], [DOWN], [LEFT], [UP]],                    # '.'
+    [[DOWN], [RIGHT], [UP], [LEFT]],                    # '\\'
+    [[UP], [LEFT], [DOWN], [RIGHT]],                    # '/'
+    [[UP, DOWN], [DOWN], [UP, DOWN], [UP]],             # '|'
+    [[RIGHT], [LEFT, RIGHT], [LEFT], [LEFT, RIGHT]],    # '-'
+]
 
 dx = [0, 1, 0, -1]
 dy = [1, 0, -1, 0]
@@ -97,12 +91,14 @@ def solve(mirr, x, y, d):
 
 def solve1(infile):
     mirr = get_input(infile)
+    mirr = conv(mirr)
     ans = solve(mirr, 0, 0, 0)
     return ans
 
 
 def solve2(infile):
     mirr = get_input(infile)
+    mirr = conv(mirr)
     n = len(mirr)
     m = len(mirr[0])
 
@@ -117,9 +113,9 @@ def solve2(infile):
 
 
 def main():
-    print(solve1('16_test.in'))
-    print(solve1('16.in'))
-    print(solve2('16_test.in'))
+    # print(solve1('16_test.in'))
+    # print(solve1('16.in'))
+    # print(solve2('16_test.in'))
     tm = time.time()
     print(solve2('16.in'))
     print(time.time() - tm)
