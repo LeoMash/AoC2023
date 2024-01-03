@@ -1,47 +1,53 @@
-import networkx as nx
-import matplotlib.pyplot as plt
+import random
+from collections import defaultdict
 
 
 def get_input(infile):
     with open(infile) as f:
         content = f.read()
     lines = content.splitlines()
-    g = nx.Graph()
+    v = defaultdict(set)
     for line in lines:
         src, dsts = line.split(":", 1)
         for dst in dsts.split():
-            g.add_edge(src, dst)
-            g.add_edge(dst, src)
-    return g
+            v[src].add(dst)
+            v[dst].add(src)
+    return v
 
 
-def draw_graph(graph: nx.Graph) -> None:
-    pos = nx.spring_layout(graph)
-    plt.figure(figsize=(64, 64))
-    nx.draw(graph, pos, with_labels=True, font_weight='bold', node_size=700)
-    plt.show()
+# https://en.wikipedia.org/wiki/Karger%27s_algorithm
+def kargers(graph):
+    while True:
+        V = {name: (list(v), {name}) for name, v in graph.items()}
+
+        while len(V.keys()) > 2:
+            e = random.choice(list(V.keys()))
+            f = random.choice(V[e][0])
+
+            u, v = V[e], V[f]
+
+            for edge in v[0]:
+                if edge != e and edge != f:
+                    u[0].append(edge)
+                    V[edge][0].remove(f)
+                    V[edge][0].append(e)
+            V[e] = ([d for d in u[0] if d != f], u[1] | v[1])
+
+            del V[f]
+
+        if len(list(V.values())[0][0]) == 3:
+            parts = list(v[1] for v in V.values())
+            assert len(parts) == 2
+            return parts[0], parts[1]
 
 
 def solve(infile):
     g = get_input(infile)
-    # draw_graph(g)
-
-    # remove 3 edges
-    # vnm - qpp
-    # vff - rhk
-    # kfr - vkp
-    cut_edges = {('vnm', 'qpp'), ('rhk', 'bff'), ('vkp', 'kfr')}
-    print(cut_edges)
-    g.remove_edges_from(cut_edges)
-    # draw_graph(g)
-
-    comps = list(nx.connected_components(g))
-    print(len(comps))
-    a = len(comps[0])
-    print(a)
-    b = len(comps[1])
-    print(b)
-    return a * b
+    print(g)
+    cut = kargers(g)
+    print(cut)
+    ans = len(cut[0]) * len(cut[1])
+    return ans
 
 
 def main():
