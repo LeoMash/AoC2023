@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, defaultdict
 
 
 def get_input(infile):
@@ -61,63 +61,60 @@ def solve1(infile, limit):
 def bfs2(lines, sx, sy, limit):
     n = len(lines)
     m = len(lines[0])
-    odd = set()
-    even = set()
-    q = set()
-    q.add((sx, sy))
-    steps = 0
-    while steps <= limit:
-        # print(q)
-        if steps % 2 == 0:
-            s = even
-            next_s = odd
-        else:
-            s = odd
-            next_s = even
-
-        next_q = set()
-        for x, y in q:
-            s.add((x, y))
-            for dx, dy in DIRS:
-                nx, ny = x + dx, y + dy
-                if (nx, ny) in next_s:
-                    continue
-                nxn, nyn = nx % n, ny % m
-                c = lines[nxn][nyn]
-                if c == '.':
-                    next_q.add((nx, ny))
-        q = next_q
-        print(f'step {steps} : {len(s)}')
-        # print(s)
+    step2cnt = defaultdict(int)
+    visited = defaultdict(set)
+    visited[0] = {(sx, sy)}
+    q = deque()
+    q.append(((sx, sy), 0))
+    while q:
+        (x, y), steps = q.popleft()
+        if steps == limit:
+            break
+        step2cnt[steps] += 1
         steps += 1
+        for dx, dy in DIRS:
+            nx, ny = x + dx, y + dy
+            if lines[nx % n][ny % m] == '#':
+                continue
 
-    if steps % 2 == 0:
-        s = odd
-    else:
-        s = even
+            if steps not in step2cnt:
+                step2cnt[steps] = step2cnt[steps - 2]
+                visited[steps] = visited[steps - 2]
 
-    return len(s)
+            if (nx, ny) not in visited[steps]:
+                q.append(((nx, ny), steps))
+                visited[steps].add((nx, ny))
+    return step2cnt
 
 
 def solve2(infile, limit):
     lines = get_input(infile)
     sx, sy = find_start(lines)
     lines[sx][sy] = '.'
-    ans = bfs2(lines, sx, sy, limit)
+    w = len(lines)
+    h = len(lines[0])
+    assert w == h
+    print(w, h, sx, sy)
+    limit_ovr = limit % w
+    limit_upd = (limit_ovr + 2 * w) + 1
+    print(limit_ovr, limit_upd)
+
+    reachable = bfs2(lines, sx, sy, limit_upd)
+    p = reachable[limit_ovr], reachable[limit_ovr + w], reachable[limit_ovr + 2 * w]
+    print(p)
+
+    n = limit // w
+    a = (p[2] - 2 * p[1] + p[0]) // 2
+    b = p[1] - p[0] - a
+    c = p[0]
+    ans = a * (n * n) + b * n + c
     return ans
 
 
 def main():
     # print(solve1('21_test.in', 6))
     # print(solve1('21.in', 64))
-    # print(solve2('21_test.in', 6))
-    # print(solve2('21_test.in', 10))
-    # print(solve2('21_test.in', 50))
-    # print(solve2('21_test.in', 100))
-    # print(solve2('21_test.in', 500))
-    print(solve2('21_test.in', 1000))
-    print(solve2('21_test.in', 5000))
-    # print(solve2('21.in', 26501365))
+    print(solve2('21.in', 26501365))
 
 
 if __name__ == '__main__':
